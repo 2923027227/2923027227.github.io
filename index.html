@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>健身记录生成</title>
+    <title>训练结果生成器</title>
     <style>
         * {
             box-sizing: border-box;
@@ -14,207 +14,235 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             line-height: 1.6;
-            background-color: #f5f5f5;
-            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 500px;
             margin: 0 auto;
-            padding: 20px;
-            width: 100%;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
         }
 
         h1 {
             text-align: center;
             color: #2c3e50;
             margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: 600;
         }
 
-        h2 {
-            color: #2c3e50;
-            margin: 20px 0;
-            font-size: 1.5rem;
-        }
-
-        .exercise-form {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        .form-group {
             margin-bottom: 20px;
         }
 
         select {
             width: 100%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
             font-size: 16px;
             background-color: white;
+            outline: none;
+            transition: border-color 0.3s;
         }
 
-        #exercises {
-            margin-top: 15px;
+        select:focus {
+            border-color: #667eea;
         }
 
-        #exercises button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            margin: 5px;
-            border-radius: 4px;
+        .exercises-section {
+            margin: 30px 0;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .exercise-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .exercise-btn {
+            padding: 12px 16px;
+            border: 2px solid #667eea;
+            border-radius: 25px;
+            background: white;
+            color: #667eea;
+            font-size: 14px;
             cursor: pointer;
-            transition: background-color 0.3s;
+            transition: all 0.3s;
         }
 
-        #exercises button:hover {
-            background-color: #2980b9;
+        .exercise-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .exercise-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .selected-exercises {
+            margin-top: 30px;
         }
 
         .exercise-item {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin: 15px 0;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #e0e0e0;
         }
 
         .exercise-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        .exercise-header h3 {
-            margin: 0;
+        .exercise-name {
+            font-weight: 600;
+            font-size: 16px;
             color: #2c3e50;
         }
 
+        .delete-exercise-btn {
+            padding: 6px 12px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .delete-exercise-btn:hover {
+            background: #c0392b;
+        }
+
         .input-group {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
         }
 
         input[type="number"] {
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            flex: 1;
-            min-width: 80px;
-            font-size: 16px;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.3s;
         }
 
-        .btn {
-            padding: 8px 15px;
+        input[type="number"]:focus {
+            border-color: #667eea;
+        }
+
+        .add-set-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #667eea;
+            color: white;
             border: none;
-            border-radius: 4px;
+            font-size: 24px;
             cursor: pointer;
-            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
             transition: all 0.3s;
         }
 
-        .btn-add {
-            background-color: #2ecc71;
-            color: white;
+        .add-set-btn:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
         }
 
-        .btn-add:hover {
-            background-color: #27ae60;
-        }
-
-        .btn-delete {
-            background-color: #e74c3c;
-            color: white;
-        }
-
-        .btn-delete:hover {
-            background-color: #c0392b;
+        .sets-list {
+            margin-top: 20px;
         }
 
         .set-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px;
-            background-color: #f8f9fa;
-            border-radius: 4px;
-            margin: 5px 0;
+            padding: 12px 16px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
         }
 
-        .generate-btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background-color: #9b59b6;
+        .set-info {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .delete-set-btn {
+            padding: 6px 12px;
+            background: #e74c3c;
             color: white;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
+            border-radius: 20px;
+            font-size: 12px;
             cursor: pointer;
-            margin: 20px 0;
             transition: background-color 0.3s;
         }
 
+        .delete-set-btn:hover {
+            background: #c0392b;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 30px;
+            transition: all 0.3s;
+        }
+
         .generate-btn:hover {
-            background-color: #8e44ad;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
         #output {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            overflow-x: auto;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
             margin-top: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
         }
 
-        /* 响应式设计 */
-        @media (max-width: 600px) {
-            .container {
-                padding: 10px;
-            }
-
-            h1 {
-                font-size: 1.5rem;
-            }
-
-            .exercise-item {
-                padding: 10px;
-            }
-
-            .input-group {
-                flex-direction: column;
-            }
-
-            input[type="number"] {
-                width: 100%;
-            }
-
-            .btn {
-                width: 60%;
-                margin: 5px 0;
-            }
-            .btn-add {
-                width: 100%;
-                margin: 5px 0;
-            }
-            .set-item {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .set-item button {
-                margin-top: 5px;
-            }
-        }
-
-        /* Toast 样式 */
         .toast {
             visibility: hidden;
             min-width: 250px;
@@ -238,29 +266,21 @@
             opacity: 1;
         }
 
-        .copy-btn {
-            display: block;
-            width: 100%;
-            padding: 12px;
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            margin: 20px 0;
-            transition: background-color 0.3s;
-        }
-
-        .copy-btn:hover {
-            background-color: #2980b9;
-        }
-
-        /* 响应式调整 */
         @media (max-width: 600px) {
-            .toast {
-                min-width: 200px;
-                bottom: 20px;
+            .container {
+                padding: 20px;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .exercise-buttons {
+                grid-template-columns: 1fr;
+            }
+
+            .input-group {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -269,94 +289,102 @@
     <div class="container">
         <h1>训练结果生成器</h1>
         
-        <div class="exercise-form">
+        <div class="form-group">
             <select id="person" onchange="whoAreYou()">
                 <option value="">选择您是谁</option>
                 <option value="laowang">老王</option>
                 <option value="laojin">老金</option>
             </select>
+        </div>
+        
+        <div class="form-group">
             <select id="category" onchange="updateSubcategory()">
                 <option value="">选择训练类别</option>
                 <option value="strength">力量训练</option>
                 <option value="cardio">有氧训练</option>
             </select>
+        </div>
 
+        <div class="form-group">
             <select id="subcategory" onchange="updateExercises()" style="display: none;">
                 <option value="">选择部位</option>
             </select>
+        </div>
 
-            <div id="exercises" style="display: none;"></div>
+        <div class="exercises-section" id="exercises" style="display: none;">
+            <div class="section-title">选择训练动作：</div>
+            <div class="exercise-buttons"></div>
         </div>
 
         <div class="selected-exercises">
-            <h2>已选择的训练动作</h2>
+            <div class="section-title">已选择的训练动作</div>
             <div id="selected-list"></div>
         </div>
 
-        <button class="copy-btn" onclick="copyTrainingPlan()">生成训练结果</button>
+        <button class="generate-btn" onclick="copyTrainingPlan()">生成训练结果</button>
         <pre id="output"></pre>
     </div>
     
-    <!-- Toast 提示框 -->
     <div id="toast" class="toast">已复制到剪贴板</div>
 
     <script>
-         const exerciseData = {
+        const exerciseData = {
             strength: {
                 chest: {
                     name: "胸部",
-                    exercises: ["杠铃卧推", "哑铃卧推", "蝴蝶机夹胸","龙门架夹胸","双杠臂屈伸","上斜卧推","俯卧撑"]
-                },
-                triceps:{
-                    name: "肱三头肌",
-                    exercises: ["绳索-直臂下压", "直杆-直臂下压", "龙门架-俯身臂屈伸", "哑铃臂屈伸", "窄距杠铃卧推"]
-                },
-                biceps: {
-                    name: "肱二头肌",
-                    exercises: ["锤式弯举", "哑铃-弯举", "easy杆-弯举", "龙门架-弯举"]
+                    exercises: ["杠铃卧推", "哑铃卧推", "蝴蝶机夹胸", "龙门架夹胸", "双杠臂屈伸", "上斜卧推", "俯卧撑"]
                 },
                 back: {
                     name: "背部",
-                    exercises: ["引体向上", "杠铃-划船","哑铃-划船", "高位下拉-宽距","高位下拉-窄距","龙门架-窄距划船","龙门架-宽距划船", "龙门架-单臂划船", "绳索-直臂下压", "直杆-直臂下压"]
-                },
-                shoulder: {
-                    name: "肩膀",
-                    exercises: ["前-哑铃上斜推举","前-龙门架推肩","中-侧平举","中-龙门架侧平举","后-哑铃提拉","后-蝴蝶机反向飞鸟"]
+                    exercises: ["引体向上", "划船", "高位下拉", "硬拉", "坐姿划船", "面拉"]
                 },
                 legs: {
                     name: "腿部",
-                    exercises: ["杠铃深蹲", "器械腿屈伸", "直腿硬拉", "倒蹬","哈克深蹲", "小腿提踵"]
+                    exercises: ["深蹲", "腿举", "腿屈伸", "腿弯举", "弓步", "臀桥"]
                 },
-                abs:{
-                    name: "腹肌",
-                    exercises: ["悬垂举腿", "龙门架跪姿卷腹", "卷腹", "上斜仰卧起坐", "俄罗斯转体", "平板支撑", "登山跑", "两头起","自行车", "大风车", "躺姿抬腿"]
+                shoulders: {
+                    name: "肩部",
+                    exercises: ["哑铃肩推", "侧平举", "前平举", "俯身飞鸟"]
+                },
+                arms: {
+                    name: "手臂",
+                    exercises: ["二头肌弯举", "三头肌下压", "锤式弯举", "窄握卧推"]
+                },
+                abs: {
+                    name: "腹部",
+                    exercises: ["仰卧起坐", "平板支撑", "卷腹", "俄罗斯转体"]
                 }
             },
             cardio: {
                 running: {
                     name: "跑步",
-                    exercises: ["跑步机", "椭圆机", "爬楼机"]
+                    exercises: ["慢跑", "间歇跑", "冲刺", "上坡跑"]
                 },
                 cycling: {
                     name: "骑行",
-                    exercises: ["室内-any", "户外-any"]
+                    exercises: ["动感单车", "户外骑行", "爬坡骑行"]
                 },
-                swiming:{
+                swimming: {
                     name: "游泳",
-                    exercises: ["游泳"]
+                    exercises: ["自由泳", "蛙泳", "仰泳", "蝶泳"]
+                },
+                hiit: {
+                    name: "HIIT",
+                    exercises: ["波比跳", "开合跳", "登山者", "深蹲跳"]
                 }
             }
         };
 
-        let selectedExercises = [];
+        let selectedExercises = {
+            person: "",
+            exercises: []
+        };
 
         function updateSubcategory() {
             const category = document.getElementById("category").value;
             const subcategorySelect = document.getElementById("subcategory");
-            const exercisesDiv = document.getElementById("exercises");
             
             subcategorySelect.style.display = category ? "block" : "none";
-            exercisesDiv.style.display = "none";
             
             if (category) {
                 subcategorySelect.innerHTML = '<option value="">选择部位</option>';
@@ -371,15 +399,7 @@
         function whoAreYou() {
             const person = document.getElementById("person").value;
             if (person) {
-                // 保留现有的exercises数组
-                const existingExercises = selectedExercises?.exercises || [];
-                
-                // 重置整个数据结构
-                selectedExercises = {
-                    person: person,
-                    exercises: existingExercises
-                };
-                
+                selectedExercises.person = person;
                 updateSelectedList();
             }
         }
@@ -388,50 +408,49 @@
             const category = document.getElementById("category").value;
             const subcategory = document.getElementById("subcategory").value;
             const exercisesDiv = document.getElementById("exercises");
+            const buttonsContainer = exercisesDiv.querySelector('.exercise-buttons');
             
             exercisesDiv.style.display = subcategory ? "block" : "none";
             
             if (subcategory) {
-                exercisesDiv.innerHTML = '<h3>选择训练动作：</h3>';
+                buttonsContainer.innerHTML = '';
                 exerciseData[category][subcategory].exercises.forEach(exercise => {
-                    exercisesDiv.innerHTML += `
-                        <div>
-                            <button onclick="addExercise('${exercise}')">${exercise}</button>
-                        </div>
+                    buttonsContainer.innerHTML += `
+                        <button class="exercise-btn" onclick="toggleExercise('${exercise}')">${exercise}</button>
                     `;
                 });
             }
         }
 
-        function addExercise(exerciseName) {
-            // 检查是否已存在相同名称的训练动作
-            const exercises = selectedExercises.exercises || [];
-            const existingIndex = exercises.findIndex(e => e.name === exerciseName);
+        function toggleExercise(exerciseName) {
+            const button = event.target;
+            const existingIndex = selectedExercises.exercises.findIndex(e => e.name === exerciseName);
+            
             if (existingIndex !== -1) {
-                alert('该训练动作已添加！');
-                return;
+                selectedExercises.exercises.splice(existingIndex, 1);
+                button.classList.remove('active');
+            } else {
+                selectedExercises.exercises.push({
+                    name: exerciseName,
+                    sets: []
+                });
+                button.classList.add('active');
             }
             
-            const exercise = {
-                name: exerciseName,
-                sets: []
-            };
-
-            // 如果selectedExercises还不是对象格式，先初始化
-            if (!selectedExercises.exercises) {
-                const person = document.getElementById("person").value;
-                selectedExercises = {
-                    person: person,
-                    exercises: []
-                };
-            }
-            
-            selectedExercises.exercises.push(exercise);
             updateSelectedList();
         }
 
         function removeExercise(index) {
+            const exerciseName = selectedExercises.exercises[index].name;
             selectedExercises.exercises.splice(index, 1);
+            
+            const exerciseButtons = document.querySelectorAll('.exercise-btn');
+            exerciseButtons.forEach(btn => {
+                if (btn.textContent === exerciseName) {
+                    btn.classList.remove('active');
+                }
+            });
+            
             updateSelectedList();
         }
 
@@ -439,19 +458,12 @@
             const weight = document.getElementById(`weight-${index}`).value;
             const reps = document.getElementById(`reps-${index}`).value;
             
-            // 输入验证
             if (!weight || !reps) {
                 alert('请输入重量和次数！');
                 return;
             }
             if (weight <= 0 || reps <= 0) {
                 alert('重量和次数必须大于0！');
-                return;
-            }
-            
-            // 验证是否为有效数字
-            if (!isValidNumber(weight) || !isValidNumber(reps)) {
-                alert('请输入有效的数字！');
                 return;
             }
             
@@ -463,37 +475,15 @@
                 reps: parseInt(reps)
             });
             
-            // 清空输入框
             document.getElementById(`weight-${index}`).value = '';
             document.getElementById(`reps-${index}`).value = '';
             
             updateSelectedList();
         }
 
-        // 添加数字验证函数
-        function isValidNumber(value) {
-            return !isNaN(value) && value.toString().match(/^[0-9]*\.?[0-9]+$/);
-        }
-
-        // 添加输入限制函数
-        function validateNumberInput(event) {
-            // 允许: 退格键、删除键、数字键、小数点（对于重量）
-            const allowedKeys = ['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'Tab'];
-            if (!allowedKeys.includes(event.key) && !/^[0-9.]$/.test(event.key)) {
-                event.preventDefault();
-            }
-            
-            // 确保小数点只能输入一次
-            if (event.key === '.' && event.target.value.includes('.')) {
-                event.preventDefault();
-            }
-        }
-
         function removeSet(exerciseIndex, setIndex) {
-            // 删除指定组数
             selectedExercises.exercises[exerciseIndex].sets.splice(setIndex, 1);
             
-            // 重新编号剩余的组数
             selectedExercises.exercises[exerciseIndex].sets.forEach((set, index) => {
                 set.setNumber = index + 1;
             });
@@ -503,12 +493,11 @@
 
         function updateSelectedList() {
             const selectedList = document.getElementById("selected-list");
-            const exercises = selectedExercises.exercises || [];
-            selectedList.innerHTML = exercises.map((exercise, index) => `
+            selectedList.innerHTML = selectedExercises.exercises.map((exercise, index) => `
                 <div class="exercise-item">
                     <div class="exercise-header">
-                        <h3>${exercise.name}</h3>
-                        <button class="btn btn-delete" onclick="removeExercise(${index})">删除动作</button>
+                        <span class="exercise-name">${exercise.name}</span>
+                        <button class="delete-exercise-btn" onclick="removeExercise(${index})">删除动作</button>
                     </div>
                     <div class="input-group">
                         <input type="number" 
@@ -516,23 +505,19 @@
                             placeholder="重量(kg)" 
                             step="0.5" 
                             min="0"
-                            onkeydown="validateNumberInput(event)"
-                            oninput="this.value = this.value.replace(/[^0-9.]/g, '')"
                             >
                         <input type="number" 
                             id="reps-${index}" 
                             placeholder="次数" 
                             min="1"
-                            onkeydown="validateNumberInput(event)"
-                            oninput="this.value = this.value.replace(/[^0-9]/g, '')"
                             >
-                        <button class="btn btn-add" onclick="addSet(${index})">添加组数</button>
                     </div>
-                    <div>
+                    <button class="add-set-btn" onclick="addSet(${index})">+</button>
+                    <div class="sets-list">
                         ${exercise.sets.map((set, setIndex) => `
                             <div class="set-item">
-                                <span>第${set.setNumber}组: ${set.weight}kg x ${set.reps}次</span>
-                                <button class="btn btn-delete" onclick="removeSet(${index}, ${setIndex})">删除此组</button>
+                                <span class="set-info">第${set.setNumber}组: ${set.weight}kg x ${set.reps}次</span>
+                                <button class="delete-set-btn" onclick="removeSet(${index}, ${setIndex})">删除此组</button>
                             </div>
                         `).join('')}
                     </div>
@@ -540,53 +525,15 @@
             `).join('');
         }
 
-        function generateJSON() {
-            const output = document.getElementById("output");
-            output.textContent = JSON.stringify(selectedExercises, null, 2);
-        }
-
         function showToast() {
             const toast = document.getElementById("toast");
             toast.className = "toast show";
             
-            // 3秒后隐藏 toast
             setTimeout(() => {
                 toast.className = toast.className.replace("show", "");
             }, 3000);
         }
 
-        function copyTrainingPlan() {
-            if (selectedExercises.exercises.length === 0) {
-                alert('请先添加训练动作！');
-                return;
-            }
-
-            // 格式化 JSON 数据
-            const jsonData = JSON.stringify(selectedExercises, null, 2);
-            
-            // 更新显示区域
-            document.getElementById("output").textContent = jsonData;
-
-            // 创建临时文本区域进行复制
-            const textarea = document.createElement('textarea');
-            textarea.value = jsonData;
-            document.body.appendChild(textarea);
-            textarea.select();
-            
-            try {
-                // 执行复制命令
-                document.execCommand('copy');
-                showToast();
-            } catch (err) {
-                console.error('复制失败:', err);
-                alert('复制失败，请手动复制');
-            } finally {
-                // 移除临时文本区域
-                document.body.removeChild(textarea);
-            }
-        }
-
-        // 为了支持新版浏览器的剪贴板 API，添加现代复制方法
         async function copyToClipboard(text) {
             try {
                 await navigator.clipboard.writeText(text);
@@ -596,23 +543,24 @@
             }
         }
 
-        // 更新复制函数为异步方法
         async function copyTrainingPlan() {
             if (selectedExercises.exercises.length === 0) {
                 alert('请先添加训练动作！');
+                return;
+            }
+            if (!selectedExercises.person) {
+                alert('请先选择用户！');
                 return;
             }
 
             const jsonData = JSON.stringify(selectedExercises, null, 2);
             document.getElementById("output").textContent = jsonData;
 
-            // 尝试使用现代剪贴板 API
             const success = await copyToClipboard(jsonData);
             
             if (success) {
                 showToast();
             } else {
-                // 降级使用旧方法
                 const textarea = document.createElement('textarea');
                 textarea.value = jsonData;
                 document.body.appendChild(textarea);
@@ -632,4 +580,3 @@
     </script>
 </body>
 </html>
-
