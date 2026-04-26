@@ -231,6 +231,13 @@
             box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
         }
 
+        .generate-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         #output {
             background: #f8f9fa;
             padding: 20px;
@@ -321,7 +328,7 @@
             <div id="selected-list"></div>
         </div>
 
-        <button class="generate-btn" onclick="copyTrainingPlan()">生成训练结果</button>
+        <button class="generate-btn" onclick="submitTrainingResult()">生成训练结果</button>
         <pre id="output"></pre>
     </div>
     
@@ -416,13 +423,13 @@
                 buttonsContainer.innerHTML = '';
                 exerciseData[category][subcategory].exercises.forEach(exercise => {
                     buttonsContainer.innerHTML += `
-                        <button class="exercise-btn" onclick="toggleExercise('${exercise}')">${exercise}</button>
+                        <button class="exercise-btn" onclick="toggleExercise('${exercise}', '${category}')">${exercise}</button>
                     `;
                 });
             }
         }
 
-        function toggleExercise(exerciseName) {
+        function toggleExercise(exerciseName, exerciseType) {
             const button = event.target;
             const existingIndex = selectedExercises.exercises.findIndex(e => e.name === exerciseName);
             
@@ -432,6 +439,7 @@
             } else {
                 selectedExercises.exercises.push({
                     name: exerciseName,
+                    type: exerciseType,
                     sets: []
                 });
                 button.classList.add('active');
@@ -455,28 +463,53 @@
         }
 
         function addSet(index) {
-            const weight = document.getElementById(`weight-${index}`).value;
-            const reps = document.getElementById(`reps-${index}`).value;
+            const exercise = selectedExercises.exercises[index];
+            const isCardio = exercise.type === 'cardio';
             
-            if (!weight || !reps) {
-                alert('请输入重量和次数！');
-                return;
+            if (isCardio) {
+                const duration = document.getElementById(`duration-${index}`).value;
+                
+                if (!duration) {
+                    alert('请输入时长！');
+                    return;
+                }
+                if (duration <= 0) {
+                    alert('时长必须大于0！');
+                    return;
+                }
+                
+                const setNumber = exercise.sets.length + 1;
+                
+                exercise.sets.push({
+                    setNumber,
+                    duration: parseInt(duration)
+                });
+                
+                document.getElementById(`duration-${index}`).value = '';
+            } else {
+                const weight = document.getElementById(`weight-${index}`).value;
+                const reps = document.getElementById(`reps-${index}`).value;
+                
+                if (!weight || !reps) {
+                    alert('请输入重量和次数！');
+                    return;
+                }
+                if (weight <= 0 || reps <= 0) {
+                    alert('重量和次数必须大于0！');
+                    return;
+                }
+                
+                const setNumber = exercise.sets.length + 1;
+                
+                exercise.sets.push({
+                    setNumber,
+                    weight: parseFloat(weight),
+                    reps: parseInt(reps)
+                });
+                
+                document.getElementById(`weight-${index}`).value = '';
+                document.getElementById(`reps-${index}`).value = '';
             }
-            if (weight <= 0 || reps <= 0) {
-                alert('重量和次数必须大于0！');
-                return;
-            }
-            
-            const setNumber = selectedExercises.exercises[index].sets.length + 1;
-            
-            selectedExercises.exercises[index].sets.push({
-                setNumber,
-                weight: parseFloat(weight),
-                reps: parseInt(reps)
-            });
-            
-            document.getElementById(`weight-${index}`).value = '';
-            document.getElementById(`reps-${index}`).value = '';
             
             updateSelectedList();
         }
@@ -493,12 +526,23 @@
 
         function updateSelectedList() {
             const selectedList = document.getElementById("selected-list");
-            selectedList.innerHTML = selectedExercises.exercises.map((exercise, index) => `
+            selectedList.innerHTML = selectedExercises.exercises.map((exercise, index) => {
+                const isCardio = exercise.type === 'cardio';
+                return `
                 <div class="exercise-item">
                     <div class="exercise-header">
                         <span class="exercise-name">${exercise.name}</span>
                         <button class="delete-exercise-btn" onclick="removeExercise(${index})">删除动作</button>
                     </div>
+                    ${isCardio ? `
+                    <div class="input-group">
+                        <input type="number" 
+                            id="duration-${index}" 
+                            placeholder="时长(分钟)" 
+                            min="1"
+                            >
+                    </div>
+                    ` : `
                     <div class="input-group">
                         <input type="number" 
                             id="weight-${index}" 
@@ -512,17 +556,18 @@
                             min="1"
                             >
                     </div>
+                    `}
                     <button class="add-set-btn" onclick="addSet(${index})">+</button>
                     <div class="sets-list">
                         ${exercise.sets.map((set, setIndex) => `
                             <div class="set-item">
-                                <span class="set-info">第${set.setNumber}组: ${set.weight}kg x ${set.reps}次</span>
+                                <span class="set-info">${isCardio ? `第${set.setNumber}组: ${set.duration}分钟` : `第${set.setNumber}组: ${set.weight}kg x ${set.reps}次`}</span>
                                 <button class="delete-set-btn" onclick="removeSet(${index}, ${setIndex})">删除此组</button>
                             </div>
                         `).join('')}
                     </div>
                 </div>
-            `).join('');
+            `}).join('');
         }
 
         function showToast() {
@@ -575,6 +620,52 @@
                 } finally {
                     document.body.removeChild(textarea);
                 }
+            }
+        }
+
+        async function submitTrainingResult() {
+            if (selectedExercises.exercises.length === 0) {
+                alert('请先添加训练动作！');
+                return;
+            }
+            if (!selectedExercises.person) {
+                alert('请先选择用户！');
+                return;
+            }
+
+            const generateBtn = document.querySelector('.generate-btn');
+            generateBtn.disabled = true;
+            generateBtn.textContent = '提交中...';
+
+            try {
+                // 构建请求参数，符合PushRecordReqNew类的格式
+                const requestData = {
+                    person: selectedExercises.person,
+                    exercises: selectedExercises.exercises
+                };
+
+                // 发送HTTP请求到正确的接口
+                const response = await fetch('http://8.138.24.4:8081/pushRecordNew', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+
+                const result = await response.json();
+                
+                if (result && result.result) {
+                    alert('训练结果提交成功！');
+                } else {
+                    alert('训练结果提交失败：' + (result.message || '未知错误'));
+                }
+            } catch (error) {
+                console.error('提交失败:', error);
+                alert('网络请求失败，请检查网络连接');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '生成训练结果';
             }
         }
     </script>
